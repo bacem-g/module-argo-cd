@@ -22,7 +22,7 @@ provider "helm" {
 
 
 /*
-provider "aws" {
+provider "hashicorp/aws" {
   region = var.aws_region
 }
 
@@ -30,7 +30,7 @@ data "aws_eks_cluster" "msur" {
   name = var.kubernetes_cluster_id
 }
 
-provider "kubernetes" {
+provider "hashicorp/kubernetes" {
   load_config_file       = false
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.msur.certificate_authority.0.data)
   host                   = data.aws_eks_cluster.msur.endpoint
@@ -43,7 +43,7 @@ provider "kubernetes" {
 
 
 
-provider "helm" {
+provider "hashicorp/helm" {
   kubernetes {
     load_config_file       = false
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.msur.certificate_authority.0.data)
