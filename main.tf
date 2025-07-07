@@ -4,7 +4,7 @@ provider "kubernetes" {
   exec {
     api_version = "client.authentication.k8s.io/v1alpha1"
     command     = "aws-iam-authenticator"
-    args        = ["token", "-i", var.kubernetes_cluster_name]
+    args        = ["token", "-i", "${var.kubernetes_cluster_name}"]
   }
 }
 
@@ -15,10 +15,11 @@ provider "helm" {
     exec {
       api_version = "client.authentication.k8s.io/v1alpha1"
       command     = "aws-iam-authenticator"
-      args        = ["token", "-i", var.kubernetes_cluster_name]
+      args        = ["token", "-i", "${var.kubernetes_cluster_name}"]
     }
   }
 }
+
 
 /*
 provider "aws" {
@@ -31,30 +32,32 @@ data "aws_eks_cluster" "msur" {
 
 provider "kubernetes" {
   load_config_file       = false
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.msur.certificate_authority[0].data)
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.msur.certificate_authority.0.data)
   host                   = data.aws_eks_cluster.msur.endpoint
   exec {
     api_version = "client.authentication.k8s.io/v1alpha1"
     command     = "aws-iam-authenticator"
-    args        = ["token", "-i", data.aws_eks_cluster.msur.name]
+    args        = ["token", "-i", "${data.aws_eks_cluster.msur.name}"]
   }
 }
 
+
+
 provider "helm" {
-  kubernetes = {
+  kubernetes {
     load_config_file       = false
-    cluster_ca_certificate = base64decode(data.aws_eks_cluster.msur.certificate_authority[0].data)
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.msur.certificate_authority.0.data)
     host                   = data.aws_eks_cluster.msur.endpoint
-    exec = {
+    exec {
       api_version = "client.authentication.k8s.io/v1alpha1"
       command     = "aws-iam-authenticator"
-      args        = ["token", "-i", data.aws_eks_cluster.msur.name]
+      args        = ["token", "-i", "${data.aws_eks_cluster.msur.name}"]
     }
   }
 }
 */
 
-resource "kubernetes_namespace" "argo_ns" {
+resource "kubernetes_namespace" "argo-ns" {
   metadata {
     name = "argocd"
   }
@@ -64,12 +67,9 @@ resource "helm_release" "argocd" {
   name       = "msur"
   chart      = "argo-cd"
   repository = "https://argoproj.github.io/argo-helm"
-  namespace  = kubernetes_namespace.argo_ns.metadata[0].name
+  namespace  = "argocd"
 
   # We are going to access the console with a port forwarded connection, so we'll disable TLS.
-  # This allows us to avoid the self-signed certificate warning for localhost.
-  set {
-    name  = "controller.extraArgs"
-    value = "insecure"
-  }
+  # This allow us to avoid the self-signed certificate warning for localhosts.
+  # controller.extraArgs = ["insecure"]
 }
