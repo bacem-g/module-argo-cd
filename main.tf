@@ -68,10 +68,8 @@ resource "helm_release" "argocd" {
 
   # We are going to access the console with a port forwarded connection, so we'll disable TLS.
   # This allows us to avoid the self-signed certificate warning for localhost.
-  set = [
-    {
-      name  = "controller.extraArgs"
-      value = "insecure"
-    }
-  ]
+  set = {
+    name  = "controller.extraArgs"
+    value = "insecure"
+  }
 }
